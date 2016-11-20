@@ -1,11 +1,10 @@
 
 $(document).ready(function () {
-    Game.setGameField(
-        $('#gameField').width() - $('#car').width(),
-        $('#gameField').height() - $('#car').height()
-    );
 
-    Game.createBug();
+    Game.init(
+        $('#gameField').width(),
+        $('#gameField').height()
+    );
 
     window.setInterval(Game.run, Game.quant);
 

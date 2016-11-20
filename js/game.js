@@ -15,16 +15,12 @@ var Game = (function () {
     var v_acc = 0.2; // increment of the velocity with pressing accelerator
     var v_max = 3.0;
 
-    var angle = 0.0;
-    var delta_angle = 5;
-
     var dt = 5; // step
     var quant = 50;
 
     var bugs = [];
+    var player;
     var max_ttl = 12000;
-    var min_ttl = 12000;
-    var initial_mass = 1;
 
     //keys
     var isArrowUpPressed = false;
@@ -138,13 +134,13 @@ var Game = (function () {
 
     }
 
-    function setGameField(maxX, maxY) {
+    function init(maxX, maxY) {
         max_x = maxX;
         max_y = maxY;
-        x = max_x / 2; //determine middle point
-        y = max_y / 2;
         score = 0;
         start_time = new Date();
+        createBug();
+        player = new Player(max_x / 2, max_y / 2);
     }
 
     function toRadians(angle) {
@@ -157,13 +153,38 @@ var Game = (function () {
         return hexChar[(b >> 4) & 0x0f] + hexChar[b & 0x0f];
     }
 
-    function Bug(x, y) {
+  /**
+   * @see https://developer.mozilla.org/en/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
+   */
+
+    function MovingObject(x, y) {
         this.id = makeid();
-        this.x = 0;
-        this.y = 0;
-        this.ttl = 12000 - Math.random() * 6000;
+        this.x = x;
+        this.y = y;
         this.direction = 1;
+        this.mass = 1;
     }
+
+    MovingObject.prototype = {
+        doTurn: function() {
+            console.log('turn');
+        }
+    };
+
+    function Player(x, y) {
+        MovingObject.call(this, x, y);
+        this.lives = 5;
+    }
+
+    Player.prototype = Object.create(MovingObject.prototype);
+    Player.prototype.constructor = Player;
+
+    function Bug(x, y) {
+        MovingObject.call(this, x, y);
+        this.ttl = 12000 - Math.random() * 6000;
+    }
+    Bug.prototype = Object.create(MovingObject.prototype);
+    Bug.prototype.constructor = Bug;
 
     function makeid()
     {
@@ -179,10 +200,10 @@ var Game = (function () {
     function createBug() {
         var nextTime = Math.random() * 2000 + 3000;
 
-        var bug = Object.create(Bug.prototype, {
-            x: { writable: true,  configurable:true, value: (max_x - item_size) * Math.random() },
-            y: { writable: true,  configurable:true, value: (max_y - item_size) * Math.random() }
-        });
+        var bug = new Bug(
+            (max_x - item_size) * Math.random(),
+            (max_y - item_size) * Math.random()
+        );
 
         bugs.push(bug);
         window.setTimeout(createBug, nextTime);
@@ -273,9 +294,9 @@ var Game = (function () {
     }
 
     return {
+        init: init,
         quant: quant,
         run: run,
-        setGameField: setGameField,
         keyUp: keyUp,
         keyDown: keyDown,
         createBug: createBug,
