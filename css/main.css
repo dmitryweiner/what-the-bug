@@ -1,0 +1,58 @@
+html, body {
+    margin: 0;
+    background-color: black;
+    height:100%;
+    width:100%;
+}
+
+#wrapper {
+    min-height:100%;
+    position:relative;
+}
+
+#gameField {
+    background-color: darkblue;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
+
+#player {
+    position: absolute;
+    top: 250px;
+    left: 250px;
+    height: 30px;
+    width: 30px;
+    background-image: url('../images/player.png');
+    z-index: 0;
+}
+
+.bug {
+    position: absolute;
+    top: 250px;
+    left: 250px;
+    height: 30px;
+    width: 30px;
+    background-image: url('../images/bug.png');
+    z-index: 0;
+}
+
+#score {
+    position: absolute;
+    right: 40px;
+    top: 10px;
+    color: darkgreen;
+    z-index: 1;
+    font-family: monospace;
+}
+
+#time {
+    position: absolute;
+    left: 40px;
+    top: 10px;
+    color: darkred;
+    z-index: 1;
+    font-family: monospace;
+}
