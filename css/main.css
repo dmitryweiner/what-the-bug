@@ -39,11 +39,20 @@ html, body {
     z-index: 0;
 }
 
-#score {
+#bugs-total {
     position: absolute;
-    right: 40px;
+    right: 220px;
     top: 10px;
-    color: darkgreen;
+    color: yellow;
+    z-index: 1;
+    font-family: monospace;
+}
+
+#bugs-fixed {
+    position: absolute;
+    right: 50px;
+    top: 10px;
+    color: yellow;
     z-index: 1;
     font-family: monospace;
 }
@@ -52,7 +61,7 @@ html, body {
     position: absolute;
     left: 40px;
     top: 10px;
-    color: darkred;
+    color: yellow;
     z-index: 1;
     font-family: monospace;
 }

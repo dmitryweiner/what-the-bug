@@ -7,19 +7,10 @@ var Game = (function () {
 
     var max_x = null;
     var max_y = null;
-    var x = null;
-    var y = null;
-
-    var v = 0.0;
-    var v_decr = 0.05; // decrement of the velocity with time
-    var v_acc = 0.2; // increment of the velocity with pressing accelerator
-    var v_max = 3.0;
-
-    var quant = 500;
+    var quant = 250;
 
     var bugs = [];
     var player;
-    var max_ttl = 12000;
 
     //keys
     var isArrowUpPressed = false;
@@ -42,7 +33,6 @@ var Game = (function () {
 
     MovingObject.prototype = {
         doTurn: function() {
-            console.log('turn');
         }
     };
 
@@ -51,6 +41,7 @@ var Game = (function () {
         this.id = 'player';
         this.lives = 5;
         this.step = $('#' + this.id).width(); // pixels in each step
+        this.item_size = this.step;
     }
 
     Player.prototype = Object.create(MovingObject.prototype, {
@@ -86,6 +77,7 @@ var Game = (function () {
                     this.direction = direction;
                 }
 
+                console.log('player', this.direction);
                 switch(this.direction) {
                     case 1:
                         this.y -= this.step;
@@ -112,13 +104,13 @@ var Game = (function () {
                     this.direction = 0;
                 }
 
-                if (this.x > max_x) {
-                    this.x = max_x;
+                if (this.x > (max_x - this.item_size)) {
+                    this.x = max_x - this.item_size;
                     this.direction = 0;
                 }
 
-                if (this.y > max_y) {
-                    this.y = max_y;
+                if (this.y > (max_y - this.item_size)) {
+                    this.y = max_y - this.item_size;
                     this.direction = 0;
                 }
 
@@ -137,7 +129,10 @@ var Game = (function () {
 
     function Bug(x, y) {
         MovingObject.call(this, x, y);
-        this.ttl = 12000 - Math.random() * 6000;
+        this.ttl = 20000 - Math.random() * 6000;
+        this.need_delete = false;
+        this.step = 30; //should grow with mass
+        this.item_size = this.step;
     }
 
     Bug.prototype = Object.create(MovingObject.prototype, {
@@ -145,32 +140,79 @@ var Game = (function () {
             value: function(){
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
 
+                //life pass
+                this.ttl -= quant;
+
+                //steps
+                if (Math.random() > 0.7) {
+                    this.direction = Math.round(1 + Math.random() * 3);
+                }
+                switch(this.direction) {
+                    case 1:
+                        this.y -= this.step;
+                        break;
+                    case 2:
+                        this.x += this.step;
+                        break;
+                    case 3:
+                        this.y += this.step;
+                        break;
+                    case 4:
+                        this.x -= this.step;
+                        break;
+                }
+                console.log('bug', this.id, this.direction);
+
+                //check borders
+                if (this.x < 0) {
+                    this.x = 0;
+                }
+
+                if (this.y < 0) {
+                    this.y = 0;
+                }
+
+                if (this.x > (max_x - this.item_size)) {
+                    this.x = max_x - this.item_size;
+                }
+
+                if (this.y > (max_y - this.item_size)) {
+                    this.y = (max_y - this.item_size);
+                }
+
                 this.need_delete = false;
 
-                //handle collision
-                if ((Math.abs(bugs[i].x - x) < item_size) && (Math.abs(bugs[i].y - y) < item_size)) {
+                //handle collision with player
+                //TODO: check mass
+                if ((Math.abs(this.x - player.x) < this.item_size) && (Math.abs(this.y - player.y) < this.item_size)) {
                     collision.play();
                     score++;
                     this.need_delete = true;
                 }
 
-                if (bugs[i].ttl > 0) {
-                    newBugs.push(bugs[i]);
-                } else {
-                    $('#' + bugs[i].id).remove();
+                if (this.ttl < 0) {
+                    this.need_delete = true;
                 }
 
-                var bugElement = $('#' + this.id);
-                if (bugElement.length == 0) {//create if not exists
-                    bugElement = $('<div id="' + this.id + '" class="bug"><p></p></div>');
-                    bugElement.css({
-                        left: bug.x,
-                        top: bug.y
-                        /* TODO: show size according to mass*/
-                    });
-                    $('#gameField').append(bugElement);
+                var angle = (this.direction - 1) * 90;
+                var element = $('#' + this.id);
+                if (this.need_delete) {
+                    element.remove();
+                    return;
+                }
+
+                var options = {
+                    left: this.x,
+                    top: this.y,
+                    transform: 'rotate(' + angle + 'deg)'
+                    /* TODO: show size according to mass*/
+                };
+                if (element.length == 0) {//create if not exists
+                    element = $('<div id="' + this.id + '" class="bug"><p></p></div>');
+                    element.css(options);
+                    $('#gameField').append(element);
                 } else {
-                    bugElement.css({opacity: this.ttl / max_ttl});
+                    element.css(options);
                 }
             },
             enumerable: true,
@@ -297,7 +339,7 @@ var Game = (function () {
     }
 
     function createBug() {
-        var nextTime = Math.random() * 2000 + 3000;
+        var nextTime = Math.random() * 1000 + 1000;
 
         var bug = new Bug(
             (max_x - item_size) * Math.random(),
@@ -308,48 +350,18 @@ var Game = (function () {
         window.setTimeout(createBug, nextTime);
     }
 
-
-    function redrawBugs() {
-        for (var i = 0; i < bugs.length; i++) {
-            var bug = bugs[i];
-            var bugElement = $('#' + bug.id);
-            if (bugElement.length == 0) {//create if not exists
-                bugElement = $('<div id="' + bug.id + '" class="bug"><p></p></div>');
-                bugElement.css({
-                    left: bug.x,
-                    top: bug.y
-                    /* TODO: show size according to mass*/
-                });
-                $('#gameField').append(bugElement);
-            } else {
-                // TODO: change coords
-                bugElement.css({opacity: bug.ttl / max_ttl});
-            }
-        }
-    }
-
     function handleBugs() {
         for (var i = 0; i < bugs.length; i++) {
-            bugs[i].ttl -= quant;
-
-            //handle collision
-            if ((Math.abs(bugs[i].x - x) < item_size) && (Math.abs(bugs[i].y - y) < item_size)) {
-                collision.play();
-                score++;
-                $('#' + bugs[i].id).remove();
-                continue;
-            }
-
-            if (bugs[i].ttl > 0) {
-                newBugs.push(bugs[i]);
-            } else {
-                $('#' + bugs[i].id).remove();
+            bugs[i].doTurn();
+            if (bugs[i].need_delete) {
+                bugs.splice(i, 1);
             }
         }
     }
 
     function redrawScreenMessages() {
-        $('#score span').html(score);
+        $('#bugs-fixed span').html(score);
+        $('#bugs-total span').html(bugs.length);
 
         var currentTime = new Date();
         $('#time span').html(Math.floor((currentTime.getTime() - start_time.getTime()) / 1000));
@@ -359,31 +371,6 @@ var Game = (function () {
         handleKeys();
         handleBugs();
         redrawScreenMessages();
-
-        var x_old = x;
-        var y_old = y;
-
-        var vx = parseFloat(v * Math.sin(toRadians(180 - angle)));
-        var vy = parseFloat(v * Math.cos(toRadians(180 - angle)));
-        x = x + vx * dt;
-        y = y + vy * dt;
-
-        v = v - v_decr;
-        if (v < 0) {
-            v = 0;
-        }
-
-        //collision with border
-        if (x > (max_x - 5) || x < 0) {
-            x = x_old;
-            v = 0;
-        }
-        if (y > (max_y - 5) || y < 0) {
-            y = y_old;
-            v = 0;
-        }
-
-        $('#car').css({ left: x, top: y, transform: 'rotate(' + angle + 'deg)' });
     }
 
     return {
