@@ -15,8 +15,7 @@ var Game = (function () {
     var v_acc = 0.2; // increment of the velocity with pressing accelerator
     var v_max = 3.0;
 
-    var dt = 5; // step
-    var quant = 50;
+    var quant = 500;
 
     var bugs = [];
     var player;
@@ -27,6 +26,161 @@ var Game = (function () {
     var isArrowDownPressed = false;
     var isArrowLeftPressed = false;
     var isArrowRightPressed = false;
+
+    /* ============= MODELS =============== */
+    /**
+     * @see https://developer.mozilla.org/en/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
+     */
+
+    function MovingObject(x, y) {
+        this.id = makeid();
+        this.x = x;
+        this.y = y;
+        this.direction = 0;
+        this.mass = 1;
+    }
+
+    MovingObject.prototype = {
+        doTurn: function() {
+            console.log('turn');
+        }
+    };
+
+    function Player(x, y) {
+        MovingObject.call(this, x, y);
+        this.id = 'player';
+        this.lives = 5;
+        this.step = $('#' + this.id).width(); // pixels in each step
+    }
+
+    Player.prototype = Object.create(MovingObject.prototype, {
+        doTurn: {
+            value: function(direction){
+                MovingObject.prototype.doTurn.apply(this, arguments); // call super
+
+                if (this.direction) {
+                    this.direction = direction;
+                    switch(this.direction) {
+                        case 1:
+                            if (direction == 3) {
+                                this.direction = 0;
+                            }
+                            break;
+                        case 2:
+                            if (direction == 4) {
+                                this.direction = 0;
+                            }
+                            break;
+                        case 3:
+                            if (direction == 1) {
+                                this.direction = 0;
+                            }
+                            break;
+                        case 4:
+                            if (direction == 2) {
+                                this.direction = 0;
+                            }
+                            break;
+                    }
+                } else {
+                    this.direction = direction;
+                }
+
+                switch(this.direction) {
+                    case 1:
+                        this.y -= this.step;
+                        break;
+                    case 2:
+                        this.x += this.step;
+                        break;
+                    case 3:
+                        this.y += this.step;
+                        break;
+                    case 4:
+                        this.x -= this.step;
+                        break;
+                }
+
+                //check borders
+                if (this.x < 0) {
+                    this.x = 0;
+                    this.direction = 0;
+                }
+
+                if (this.y < 0) {
+                    this.y = 0;
+                    this.direction = 0;
+                }
+
+                if (this.x > max_x) {
+                    this.x = max_x;
+                    this.direction = 0;
+                }
+
+                if (this.y > max_y) {
+                    this.y = max_y;
+                    this.direction = 0;
+                }
+
+                var element = $('#player');
+                element.css({
+                    left: this.x,
+                    top: this.y
+                });
+            },
+            enumerable: true,
+            configurable: true,
+            writable: true
+        }
+    });
+    Player.prototype.constructor = Player;
+
+    function Bug(x, y) {
+        MovingObject.call(this, x, y);
+        this.ttl = 12000 - Math.random() * 6000;
+    }
+
+    Bug.prototype = Object.create(MovingObject.prototype, {
+        doTurn: {
+            value: function(){
+                MovingObject.prototype.doTurn.apply(this, arguments); // call super
+
+                this.need_delete = false;
+
+                //handle collision
+                if ((Math.abs(bugs[i].x - x) < item_size) && (Math.abs(bugs[i].y - y) < item_size)) {
+                    collision.play();
+                    score++;
+                    this.need_delete = true;
+                }
+
+                if (bugs[i].ttl > 0) {
+                    newBugs.push(bugs[i]);
+                } else {
+                    $('#' + bugs[i].id).remove();
+                }
+
+                var bugElement = $('#' + this.id);
+                if (bugElement.length == 0) {//create if not exists
+                    bugElement = $('<div id="' + this.id + '" class="bug"><p></p></div>');
+                    bugElement.css({
+                        left: bug.x,
+                        top: bug.y
+                        /* TODO: show size according to mass*/
+                    });
+                    $('#gameField').append(bugElement);
+                } else {
+                    bugElement.css({opacity: this.ttl / max_ttl});
+                }
+            },
+            enumerable: true,
+            configurable: true,
+            writable: true
+        }
+    });
+    Bug.prototype.constructor = Bug;
+
+    /* ============= /MODELS =============== */
 
     function keyUp(code) {
         switch (code) {
@@ -108,29 +262,17 @@ var Game = (function () {
 
     function handleKeys() {
 
+        var direction;
         if (isArrowDownPressed) {
-            v = v - v_brake;
-            if (v < 0) {
-                v = 0;
-            }
+            direction = 3;
         } else if (isArrowUpPressed) {
-            v = v + v_acc;
-            if (v > v_max) {
-                v = v_max;
-            }
-        }
-
-        if (isArrowLeftPressed) {
-            angle = angle - delta_angle;
-            if (angle < 0) {
-                angle = 360 + angle;
-            }
+            direction = 1;
+        } else if (isArrowLeftPressed) {
+            direction = 4;
         } else if (isArrowRightPressed) {
-            angle = angle + delta_angle;
-            if (angle > 359) {
-                angle = angle - 360;
-            }
+            direction = 2;
         }
+        player.doTurn(direction);
 
     }
 
@@ -142,49 +284,6 @@ var Game = (function () {
         createBug();
         player = new Player(max_x / 2, max_y / 2);
     }
-
-    function toRadians(angle) {
-        return angle * (Math.PI / 180);
-    }
-
-
-    function byteToHex(b) {
-        var hexChar = ["0", "1", "2", "3", "4", "5", "6", "7","8", "9", "A", "B", "C", "D", "E", "F"];
-        return hexChar[(b >> 4) & 0x0f] + hexChar[b & 0x0f];
-    }
-
-  /**
-   * @see https://developer.mozilla.org/en/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
-   */
-
-    function MovingObject(x, y) {
-        this.id = makeid();
-        this.x = x;
-        this.y = y;
-        this.direction = 1;
-        this.mass = 1;
-    }
-
-    MovingObject.prototype = {
-        doTurn: function() {
-            console.log('turn');
-        }
-    };
-
-    function Player(x, y) {
-        MovingObject.call(this, x, y);
-        this.lives = 5;
-    }
-
-    Player.prototype = Object.create(MovingObject.prototype);
-    Player.prototype.constructor = Player;
-
-    function Bug(x, y) {
-        MovingObject.call(this, x, y);
-        this.ttl = 12000 - Math.random() * 6000;
-    }
-    Bug.prototype = Object.create(MovingObject.prototype);
-    Bug.prototype.constructor = Bug;
 
     function makeid()
     {
@@ -230,8 +329,6 @@ var Game = (function () {
     }
 
     function handleBugs() {
-/*
-        var newBugs = [];
         for (var i = 0; i < bugs.length; i++) {
             bugs[i].ttl -= quant;
 
@@ -248,11 +345,7 @@ var Game = (function () {
             } else {
                 $('#' + bugs[i].id).remove();
             }
-
         }
-        bugs = newBugs;
-*/
-        redrawBugs();
     }
 
     function redrawScreenMessages() {
