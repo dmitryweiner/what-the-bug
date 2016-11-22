@@ -33,6 +33,39 @@ var Game = (function () {
 
     MovingObject.prototype = {
         doTurn: function() {
+            switch(this.direction) {
+                case 1:
+                    this.y -= this.step;
+                    break;
+                case 2:
+                    this.x += this.step;
+                    break;
+                case 3:
+                    this.y += this.step;
+                    break;
+                case 4:
+                    this.x -= this.step;
+                    break;
+                default:
+                    break;
+            }
+
+            //check borders
+            if (this.x < 0) {
+                this.x = 0;
+            }
+
+            if (this.y < 0) {
+                this.y = 0;
+            }
+
+            if (this.x > (max_x - this.item_size)) {
+                this.x = max_x - this.item_size;
+            }
+
+            if (this.y > (max_y - this.item_size)) {
+                this.y = (max_y - this.item_size);
+            }
         }
     };
 
@@ -47,72 +80,10 @@ var Game = (function () {
     Player.prototype = Object.create(MovingObject.prototype, {
         doTurn: {
             value: function(direction){
+
+                this.direction = direction;
+
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
-
-                if (this.direction) {
-                    this.direction = direction;
-                    switch(this.direction) {
-                        case 1:
-                            if (direction == 3) {
-                                this.direction = 0;
-                            }
-                            break;
-                        case 2:
-                            if (direction == 4) {
-                                this.direction = 0;
-                            }
-                            break;
-                        case 3:
-                            if (direction == 1) {
-                                this.direction = 0;
-                            }
-                            break;
-                        case 4:
-                            if (direction == 2) {
-                                this.direction = 0;
-                            }
-                            break;
-                    }
-                } else {
-                    this.direction = direction;
-                }
-
-                console.log('player', this.direction);
-                switch(this.direction) {
-                    case 1:
-                        this.y -= this.step;
-                        break;
-                    case 2:
-                        this.x += this.step;
-                        break;
-                    case 3:
-                        this.y += this.step;
-                        break;
-                    case 4:
-                        this.x -= this.step;
-                        break;
-                }
-
-                //check borders
-                if (this.x < 0) {
-                    this.x = 0;
-                    this.direction = 0;
-                }
-
-                if (this.y < 0) {
-                    this.y = 0;
-                    this.direction = 0;
-                }
-
-                if (this.x > (max_x - this.item_size)) {
-                    this.x = max_x - this.item_size;
-                    this.direction = 0;
-                }
-
-                if (this.y > (max_y - this.item_size)) {
-                    this.y = max_y - this.item_size;
-                    this.direction = 0;
-                }
 
                 var element = $('#player');
                 element.css({
@@ -138,7 +109,6 @@ var Game = (function () {
     Bug.prototype = Object.create(MovingObject.prototype, {
         doTurn: {
             value: function(){
-                MovingObject.prototype.doTurn.apply(this, arguments); // call super
 
                 //life pass
                 this.ttl -= quant;
@@ -147,38 +117,8 @@ var Game = (function () {
                 if (Math.random() > 0.7) {
                     this.direction = Math.round(1 + Math.random() * 3);
                 }
-                switch(this.direction) {
-                    case 1:
-                        this.y -= this.step;
-                        break;
-                    case 2:
-                        this.x += this.step;
-                        break;
-                    case 3:
-                        this.y += this.step;
-                        break;
-                    case 4:
-                        this.x -= this.step;
-                        break;
-                }
-                console.log('bug', this.id, this.direction);
 
-                //check borders
-                if (this.x < 0) {
-                    this.x = 0;
-                }
-
-                if (this.y < 0) {
-                    this.y = 0;
-                }
-
-                if (this.x > (max_x - this.item_size)) {
-                    this.x = max_x - this.item_size;
-                }
-
-                if (this.y > (max_y - this.item_size)) {
-                    this.y = (max_y - this.item_size);
-                }
+                MovingObject.prototype.doTurn.apply(this, arguments); // call super
 
                 this.need_delete = false;
 
