@@ -286,7 +286,7 @@ var Game = (function () {
     }
 
     function createBug() {
-        var nextTime = 10 * current_time * (Math.random()  + 2);
+        var nextTime = 10 * current_time * (Math.random()  + 1);
 
         var bug = new Bug(
             (max_x - item_size) * Math.random(),
@@ -318,6 +318,9 @@ var Game = (function () {
 
     function checkIfGameOver() {
         if (current_time == 0) {
+            return true;
+        }
+        if (player.lives == 0) {
             return true;
         }
         return false;
