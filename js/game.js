@@ -2,6 +2,8 @@ var Game = (function () {
     var item_size = 30; //size of sprite in pixels
     var score;
     var start_time;
+    var game_length = 300; // 5 minutes to play
+    var current_state = 0;
 
     var collision = new Audio('sounds/collision.mp3');
 
@@ -84,6 +86,8 @@ var Game = (function () {
                 this.direction = direction;
 
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
+
+                //handle collision with bugs
 
                 var element = $('#player');
                 element.css({
@@ -265,6 +269,7 @@ var Game = (function () {
         start_time = new Date();
         createBug();
         player = new Player(max_x / 2, max_y / 2);
+        current_state = 1;
     }
 
     function makeid()
@@ -301,21 +306,39 @@ var Game = (function () {
 
     function redrawScreenMessages() {
         $('#bugs-fixed span').html(score);
+        $('#lives span').html(player.lives);
         $('#bugs-total span').html(bugs.length);
 
-        var currentTime = new Date();
-        $('#time span').html(Math.floor((currentTime.getTime() - start_time.getTime()) / 1000));
+        var time = new Date();
+        current_time = game_length - Math.floor((time.getTime() - start_time.getTime()) / 1000);
+        $('#time span').html(current_time);
+    }
+
+    function checkIfGameOver() {
+        return false;
+    }
+
+    function showGameOver() {
+
     }
 
     function run() {
-        handleKeys();
-        handleBugs();
-        redrawScreenMessages();
+        if (current_state == 1) {
+            handleKeys();
+            handleBugs();
+            redrawScreenMessages();
+            if (checkIfGameOver()) {
+                current_state = 2;
+            }
+        } else if (current_state == 2) {
+            showGameOver();
+        }
     }
 
     return {
         init: init,
-        quant: quant,
+        getQuant: function() { return quant;},
+        getCurrentState: function() { return current_state;},
         run: run,
         keyUp: keyUp,
         keyDown: keyDown,

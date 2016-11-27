@@ -39,29 +39,29 @@ html, body {
     z-index: 0;
 }
 
-#bugs-total {
+.screen-message {
     position: absolute;
-    right: 220px;
-    top: 10px;
     color: yellow;
     z-index: 1;
     font-family: monospace;
+}
+
+#bugs-total {
+    right: 220px;
+    top: 10px;
 }
 
 #bugs-fixed {
-    position: absolute;
     right: 50px;
     top: 10px;
-    color: yellow;
-    z-index: 1;
-    font-family: monospace;
 }
 
 #time {
-    position: absolute;
     left: 40px;
     top: 10px;
-    color: yellow;
-    z-index: 1;
-    font-family: monospace;
+}
+
+#lives {
+    right: 390px;
+    top: 10px;
 }

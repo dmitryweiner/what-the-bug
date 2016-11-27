@@ -6,7 +6,11 @@ $(document).ready(function () {
         $('#gameField').height()
     );
 
-    window.setInterval(Game.run, Game.quant);
+    window.setInterval(function() {
+        if (Game.getCurrentState() == 1) {
+            Game.run();
+        }
+    }, Game.getQuant());
 
     $(document).keydown(function (e) {
         var keyCode = e.keyCode || e.which;
