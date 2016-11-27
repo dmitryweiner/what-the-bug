@@ -6,7 +6,10 @@ var Game = (function () {
     var game_length = 120; //seconds to play
     var current_state = 0;
 
-    var collision = new Audio('sounds/collision.mp3');
+    var sounds = {
+        collision: new Audio('sounds/collision.mp3'),
+        error: new Audio('sounds/error.mp3')
+    };
 
     var max_x = null;
     var max_y = null;
@@ -109,6 +112,7 @@ var Game = (function () {
         this.need_delete = false;
         this.step = 30; //should grow with mass
         this.item_size = this.step;
+        this.evil_age = this.ttl * 0.1;
     }
 
     Bug.prototype = Object.create(MovingObject.prototype, {
@@ -123,15 +127,25 @@ var Game = (function () {
                     this.direction = Math.round(1 + Math.random() * 3);
                 }
 
+                if (this.ttl < this.evil_age) {
+                    this.mass = 2;
+                    this.step = 60;
+                    this.item_size = 60;
+                }
+
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
 
                 this.need_delete = false;
 
                 //handle collision with player
-                //TODO: check mass
                 if ((Math.abs(this.x - player.x) < this.item_size) && (Math.abs(this.y - player.y) < this.item_size)) {
-                    collision.play();
-                    score++;
+                    if (this.mass <= 1) {
+                        sounds.collision.play();
+                        score++;
+                    } else {
+                        sounds.error.play();
+                        player.lives -= 1;
+                    }
                     this.need_delete = true;
                 }
 
@@ -149,8 +163,10 @@ var Game = (function () {
                 var options = {
                     left: this.x,
                     top: this.y,
+                    height: this.item_size,
+                    width: this.item_size,
+                    backgroundSize: '100%',
                     transform: 'rotate(' + angle + 'deg)'
-                    /* TODO: show size according to mass*/
                 };
                 if (element.length == 0) {//create if not exists
                     element = $('<div id="' + this.id + '" class="bug"><p></p></div>');
