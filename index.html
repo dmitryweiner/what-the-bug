@@ -8,12 +8,20 @@
 </head>
 <body>
 <div id="wrapper">
-    <div id="gameField"></div>
-    <div id="player"></div>
-    <div id="bugs-total" class="screen-message"><h3>Bugs total: <span></span></h3></div>
-    <div id="lives" class="screen-message"><h3>Lives: <span></span></h3></div>
-    <div id="bugs-fixed" class="screen-message"><h3>Bugs fixed: <span></span></h3></div>
-    <div id="time" class="screen-message"><h3>Time: <span></span></h3></div>
+    <div id="gameField" class="full-screen">
+        <div id="player"></div>
+        <h3 class="bugs-left screen-message">Bugs left: <span></span></h3>
+        <h3 id="lives" class="screen-message">Lives: <span></span></h3>
+        <h3 class="bugs-fixed screen-message">Bugs fixed: <span></span></h3>
+        <h3 id="time" class="screen-message">Time: <span></span></h3>
+    </div>
+    <div id="gameOver" class="full-screen" style="display: none;">
+        <div class="center">
+            <h1>Game over</h1>
+            <h3 class="bugs-fixed">Bugs fixed: <span></span></h3>
+            <h3 class="bugs-left">Bugs left: <span></span></h3>
+        </div>
+    </div>
 </div>
 </body>
 <html>

@@ -2,7 +2,8 @@ var Game = (function () {
     var item_size = 30; //size of sprite in pixels
     var score;
     var start_time;
-    var game_length = 300; // 5 minutes to play
+    var current_time;
+    var game_length = 120; //seconds to play
     var current_state = 0;
 
     var collision = new Audio('sounds/collision.mp3');
@@ -267,6 +268,7 @@ var Game = (function () {
         max_y = maxY;
         score = 0;
         start_time = new Date();
+        current_time = game_length;
         createBug();
         player = new Player(max_x / 2, max_y / 2);
         current_state = 1;
@@ -284,7 +286,7 @@ var Game = (function () {
     }
 
     function createBug() {
-        var nextTime = Math.random() * 1000 + 1000;
+        var nextTime = 10 * current_time * (Math.random()  + 2);
 
         var bug = new Bug(
             (max_x - item_size) * Math.random(),
@@ -305,9 +307,9 @@ var Game = (function () {
     }
 
     function redrawScreenMessages() {
-        $('#bugs-fixed span').html(score);
+        $('.bugs-fixed span').html(score);
         $('#lives span').html(player.lives);
-        $('#bugs-total span').html(bugs.length);
+        $('.bugs-left span').html(bugs.length);
 
         var time = new Date();
         current_time = game_length - Math.floor((time.getTime() - start_time.getTime()) / 1000);
@@ -315,11 +317,15 @@ var Game = (function () {
     }
 
     function checkIfGameOver() {
+        if (current_time == 0) {
+            return true;
+        }
         return false;
     }
 
     function showGameOver() {
-
+        $('#gameField').hide();
+        $('#gameOver').show();
     }
 
     function run() {
@@ -329,9 +335,8 @@ var Game = (function () {
             redrawScreenMessages();
             if (checkIfGameOver()) {
                 current_state = 2;
+                showGameOver();
             }
-        } else if (current_state == 2) {
-            showGameOver();
         }
     }
 
