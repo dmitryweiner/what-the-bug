@@ -8,7 +8,8 @@ var Game = (function () {
 
     var sounds = {
         collision: new Audio('sounds/collision.mp3'),
-        error: new Audio('sounds/error.mp3')
+        error: new Audio('sounds/error.mp3'),
+        gameover: new Audio('sounds/gameover.mp3')
     };
 
     var max_x = null;
@@ -110,9 +111,10 @@ var Game = (function () {
         MovingObject.call(this, x, y);
         this.ttl = 20000 - Math.random() * 6000;
         this.need_delete = false;
-        this.step = 30; //should grow with mass
+        this.step = item_size; //should grow with mass
         this.item_size = this.step;
         this.evil_age = this.ttl * 0.1;
+        this.evil_state = false;
     }
 
     Bug.prototype = Object.create(MovingObject.prototype, {
@@ -128,9 +130,7 @@ var Game = (function () {
                 }
 
                 if (this.ttl < this.evil_age) {
-                    this.mass = 2;
-                    this.step = 60;
-                    this.item_size = 60;
+                    this.evil_state = true;
                 }
 
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
@@ -139,12 +139,12 @@ var Game = (function () {
 
                 //handle collision with player
                 if ((Math.abs(this.x - player.x) < this.item_size) && (Math.abs(this.y - player.y) < this.item_size)) {
-                    if (this.mass <= 1) {
+                    if (this.evil_state) {
+                        player.lives -= 1;
+                        sounds.error.play();
+                    } else {
                         sounds.collision.play();
                         score++;
-                    } else {
-                        sounds.error.play();
-                        player.lives -= 1;
                     }
                     this.need_delete = true;
                 }
@@ -163,11 +163,11 @@ var Game = (function () {
                 var options = {
                     left: this.x,
                     top: this.y,
-                    height: this.item_size,
-                    width: this.item_size,
-                    backgroundSize: '100%',
                     transform: 'rotate(' + angle + 'deg)'
                 };
+                if (this.evil_state) {
+                    options.filter = 'hue-rotate(' + Math.round(Math.random() * 360) + 'deg)';
+                }
                 if (element.length == 0) {//create if not exists
                     element = $('<div id="' + this.id + '" class="bug"><p></p></div>');
                     element.css(options);
@@ -354,6 +354,7 @@ var Game = (function () {
             redrawScreenMessages();
             if (checkIfGameOver()) {
                 current_state = 2;
+                sounds.gameover.play();
                 showGameOver();
             }
         }
