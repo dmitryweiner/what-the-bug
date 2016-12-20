@@ -113,7 +113,7 @@ var Game = (function () {
         this.need_delete = false;
         this.step = item_size; //should grow with mass
         this.item_size = this.step;
-        this.evil_age = this.ttl * 0.1;
+        this.evil_age = this.ttl * 0.2;
         this.evil_state = false;
     }
 
@@ -129,8 +129,9 @@ var Game = (function () {
                     this.direction = Math.round(1 + Math.random() * 3);
                 }
 
-                if (this.ttl < this.evil_age) {
+                if (!this.evil_state && this.ttl < this.evil_age) {
                     this.evil_state = true;
+                    this.evil_hue = Math.round(Math.random() * 360);
                 }
 
                 MovingObject.prototype.doTurn.apply(this, arguments); // call super
@@ -166,7 +167,7 @@ var Game = (function () {
                     transform: 'rotate(' + angle + 'deg)'
                 };
                 if (this.evil_state) {
-                    options.filter = 'hue-rotate(' + Math.round(Math.random() * 360) + 'deg)';
+                    options.filter = 'hue-rotate(' + this.evil_hue + 'deg)';
                 }
                 if (element.length == 0) {//create if not exists
                     element = $('<div id="' + this.id + '" class="bug"><p></p></div>');
